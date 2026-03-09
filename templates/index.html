@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2rem;
+            background: linear-gradient(90deg, #00d4ff, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 0.9rem;
+        }
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2rem;
+            color: #888;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        .instrument-name {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+        }
+        .ticker {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 2px;
+        }
+        .price {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        .change {
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        .change.positive {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+        .change.negative {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        .chart-container {
+            height: 80px;
+            margin-top: 15px;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.8rem;
+        }
+        .stat {
+            text-align: center;
+        }
+        .stat-label {
+            color: #666;
+            margin-bottom: 3px;
+        }
+        .stat-value {
+            color: #fff;
+            font-weight: 600;
+        }
+        .error-card {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+        .error-msg {
+            color: #ef4444;
+            font-size: 0.85rem;
+        }
+        .last-updated {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 0.85rem;
+        }
+        .refresh-btn {
+            background: linear-gradient(90deg, #00d4ff, #7c3aed);
+            border: none;
+            color: #fff;
+            padding: 10px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin: 20px auto;
+            display: block;
+            transition: opacity 0.2s;
+        }
+        .refresh-btn:hover {
+            opacity: 0.9;
+        }
+        .refresh-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .demo-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #888;
+            font-size: 0.9rem;
+        }
+        .demo-toggle input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .demo-banner {
+            background: linear-gradient(90deg, #f59e0b, #d97706);
+            color: #000;
+            text-align: center;
+            padding: 10px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .demo-badge {
+            background: #f59e0b;
+            color: #000;
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 8px;
+            font-weight: 600;
+        }
+        /* Golden Cross Section */
+        .section-title {
+            text-align: center;
+            font-size: 1.5rem;
+            margin: 40px 0 20px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .section-subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+        }
+        .cross-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            max-width: 1600px;
+            margin: 0 auto 30px;
+        }
+        .cross-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .cross-panel h3 {
+            font-size: 1rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .cross-panel.golden h3 {
+            color: #fbbf24;
+        }
+        .cross-panel.death h3 {
+            color: #ef4444;
+        }
+        .cross-panel.bullish h3 {
+            color: #10b981;
+        }
+        .cross-panel.bearish h3 {
+            color: #f87171;
+        }
+        .cross-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .cross-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            transition: background 0.2s;
+        }
+        .cross-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .cross-item-name {
+            font-weight: 600;
+            color: #fff;
+        }
+        .cross-item-ticker {
+            font-size: 0.75rem;
+            color: #666;
+        }
+        .cross-item-price {
+            font-weight: 600;
+            color: #fff;
+        }
+        .cross-item-date {
+            font-size: 0.75rem;
+            color: #888;
+        }
+        .cross-item-dma {
+            font-size: 0.7rem;
+            color: #666;
+        }
+        .badge-golden {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .badge-death {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .empty-message {
+            color: #666;
+            text-align: center;
+            padding: 20px;
+            font-size: 0.9rem;
+        }
+        .scan-btn {
+            background: linear-gradient(90deg, #fbbf24, #f59e0b);
+            border: none;
+            color: #000;
+            padding: 10px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin: 10px;
+            transition: opacity 0.2s;
+        }
+        .scan-btn:hover {
+            opacity: 0.9;
+        }
+        .scan-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .count-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            margin-left: 8px;
+        }
+        /* Fear & Greed Widget */
+        .fear-greed-container {
+            max-width: 800px;
+            margin: 0 auto 40px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .fear-greed-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .fear-greed-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .fear-greed-gauge {
+            position: relative;
+            width: 250px;
+            height: 130px;
+            margin: 0 auto 20px;
+        }
+        .gauge-bg {
+            width: 100%;
+            height: 100%;
+        }
+        .fear-greed-score {
+            font-size: 3.5rem;
+            font-weight: 700;
+            text-align: center;
+        }
+        .fear-greed-sentiment {
+            font-size: 1.4rem;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .fear-greed-factors {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .factor-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .factor-label {
+            font-size: 0.75rem;
+            color: #888;
+            margin-bottom: 5px;
+        }
+        .factor-score {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+        .factor-bar {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        .factor-bar-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.5s ease;
+        }
+        .fg-chart-container {
+            height: 100px;
+            margin-top: 20px;
+        }
+        /* Dual Fear & Greed Container */
+        .fear-greed-dual {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto 40px;
+        }
+        .fg-single {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .fg-region-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        .fg-region-badge.global {
+            background: rgba(59, 130, 246, 0.3);
+            color: #60a5fa;
+        }
+        .fg-region-badge.india {
+            background: rgba(255, 153, 51, 0.3);
+            color: #ff9933;
+        }
+        /* Railroad Tracks Widget */
+        .railroad-container {
+            max-width: 1600px;
+            margin: 0 auto 40px;
+        }
+        .railroad-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        .railroad-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .railroad-panel h3 {
+            font-size: 1rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .railroad-panel.bullish-track h3 {
+            color: #22c55e;
+        }
+        .railroad-panel.bearish-track h3 {
+            color: #ef4444;
+        }
+        .railroad-panel.converging h3 {
+            color: #eab308;
+        }
+        .railroad-panel.diverging h3 {
+            color: #8b5cf6;
+        }
+        .track-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            transition: background 0.2s;
+        }
+        .track-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .track-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .track-name {
+            font-weight: 600;
+            color: #fff;
+        }
+        .track-ticker {
+            font-size: 0.75rem;
+            color: #666;
+        }
+        .track-smas {
+            font-size: 0.7rem;
+            color: #888;
+            margin-top: 4px;
+        }
+        .track-metrics {
+            text-align: right;
+        }
+        .track-price {
+            font-weight: 600;
+            color: #fff;
+        }
+        .track-gap {
+            font-size: 0.75rem;
+            color: #888;
+        }
+        .track-strength {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 8px;
+            margin-top: 4px;
+            display: inline-block;
+        }
+        .strength-high {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+        .strength-medium {
+            background: rgba(234, 179, 8, 0.2);
+            color: #eab308;
+        }
+        .strength-low {
+            background: rgba(107, 114, 128, 0.2);
+            color: #9ca3af;
+        }
+        .railroad-icon {
+            font-size: 1.2rem;
+        }
+        .railroad-visual {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 4px;
+        }
+        .track-line {
+            height: 3px;
+            width: 40px;
+            border-radius: 2px;
+        }
+        .track-line.sma20 {
+            background: #60a5fa;
+        }
+        .track-line.sma40 {
+            background: #f472b6;
+        }
+    </style>
+</head>
+<body>
+    <h1>📈 Market Dashboard</h1>
+    <p class="subtitle">Daily prices & trends for major indices and commodities</p>
+    
+    <div id="statusBanner"></div>
+    
+    <!-- Dual Fear & Greed Index Widgets -->
+    <h2 class="section-title">😨 Fear & Greed Index 🤑</h2>
+    <p class="section-subtitle">Market sentiment indicators for Global and Indian markets</p>
+    
+    <div class="fear-greed-dual">
+        <!-- Global Fear & Greed -->
+        <div class="fg-single" id="fearGreedGlobal">
+            <div class="fear-greed-header">
+                <div class="fear-greed-title">
+                    🌍 Global Markets
+                    <span class="fg-region-badge global">GLOBAL</span>
+                </div>
+            </div>
+            <div id="fearGreedGlobalContent">
+                <div class="loading">Loading global sentiment...</div>
+            </div>
+        </div>
+        
+        <!-- India Fear & Greed -->
+        <div class="fg-single" id="fearGreedIndia">
+            <div class="fear-greed-header">
+                <div class="fear-greed-title">
+                    🇮🇳 India Markets
+                    <span class="fg-region-badge india">INDIA</span>
+                </div>
+            </div>
+            <div id="fearGreedIndiaContent">
+                <div class="loading">Loading India sentiment...</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <button class="refresh-btn" onclick="loadData()">🔄 Refresh Data</button>
+    </div>
+    
+    <div id="demoBanner"></div>
+    
+    <div id="content">
+        <div class="loading">Loading market data...</div>
+    </div>
+    
+    <p class="last-updated" id="lastUpdated"></p>
+
+    <!-- Golden Cross Section -->
+    <h2 class="section-title">🔀 20/200 DMA Crossover Scanner</h2>
+    <p class="section-subtitle">Indian stocks where 20-day MA crossed 200-day MA (Golden Cross = Bullish, Death Cross = Bearish)</p>
+    
+    <div style="text-align: center;">
+        <button class="scan-btn" onclick="loadGoldenCrosses()">🔍 Scan for Crossovers</button>
+    </div>
+    
+    <div id="crossContent"></div>
+    
+    <p class="last-updated" id="crossLastUpdated"></p>
+
+    <!-- Railroad Tracks Section -->
+    <h2 class="section-title">🛤️ Railroad Tracks Pattern Scanner</h2>
+    <p class="section-subtitle">Stocks where 20 SMA and 40 SMA are running parallel (strong trend indicator)</p>
+    
+    <div style="text-align: center;">
+        <button class="scan-btn" style="background: linear-gradient(90deg, #8b5cf6, #6d28d9);" onclick="loadRailroadTracks()">🔍 Scan for Railroad Tracks</button>
+    </div>
+    
+    <div class="railroad-container" id="railroadContent"></div>
+    
+    <p class="last-updated" id="railroadLastUpdated"></p>
+
+    <script>
+        let charts = {};
+        let fearGreedChartGlobal = null;
+        let fearGreedChartIndia = null;
+        let isDemo = false;
+
+        // Load Global Fear & Greed Index
+        async function loadFearGreedGlobal() {
+            try {
+                const response = await fetch('/api/fear-greed');
+                const data = await response.json();
+                renderFearGreed(data, 'Global', 'fearGreedGlobalContent', 'fearGreedChartGlobal');
+            } catch (error) {
+                document.getElementById('fearGreedGlobalContent').innerHTML = 
+                    `<div class="loading" style="color: #ef4444;">Error: ${error.message}</div>`;
+            }
+        }
+
+        // Load India Fear & Greed Index
+        async function loadFearGreedIndia() {
+            try {
+                const response = await fetch('/api/fear-greed-india');
+                const data = await response.json();
+                renderFearGreed(data, 'India', 'fearGreedIndiaContent', 'fearGreedChartIndia');
+            } catch (error) {
+                document.getElementById('fearGreedIndiaContent').innerHTML = 
+                    `<div class="loading" style="color: #ef4444;">Error: ${error.message}</div>`;
+            }
+        }
+
+        function renderFearGreed(data, region, containerId, chartId) {
+            const container = document.getElementById(containerId);
+            
+            const getBarColor = (score) => {
+                if (score <= 25) return '#dc2626';
+                if (score <= 45) return '#f97316';
+                if (score <= 55) return '#eab308';
+                if (score <= 75) return '#84cc16';
+                return '#22c55e';
+            };
+            
+            container.innerHTML = `
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <div class="fear-greed-score" style="color: ${data.color}; font-size: 2.8rem;">${data.score}</div>
+                    <div class="fear-greed-sentiment" style="color: ${data.color}; font-size: 1.2rem;">${data.emoji} ${data.sentiment}</div>
+                    <div style="background: linear-gradient(to right, #dc2626, #f97316, #eab308, #84cc16, #22c55e); height: 6px; border-radius: 3px; width: 180px; margin: 0 auto; position: relative;">
+                        <div style="position: absolute; left: ${data.score}%; top: -3px; transform: translateX(-50%);">
+                            <div style="width: 12px; height: 12px; background: #fff; border-radius: 50%; border: 2px solid ${data.color};"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="fg-chart-container" style="height: 60px; margin-bottom: 15px;">
+                    <canvas id="${chartId}"></canvas>
+                </div>
+                <div class="fear-greed-factors" style="grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px;">
+                    ${Object.entries(data.factors).map(([key, factor]) => `
+                        <div class="factor-item" style="padding: 8px;">
+                            <div class="factor-label" style="font-size: 0.65rem;">${factor.label}</div>
+                            <div class="factor-score" style="color: ${getBarColor(factor.score)}; font-size: 1rem;">${factor.score}</div>
+                            <div class="factor-bar" style="height: 3px;">
+                                <div class="factor-bar-fill" style="width: ${factor.score}%; background: ${getBarColor(factor.score)}"></div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            // Create mini chart for historical data
+            setTimeout(() => {
+                const ctx = document.getElementById(chartId);
+                if (!ctx) return;
+                
+                if (chartId === 'fearGreedChartGlobal' && fearGreedChartGlobal) fearGreedChartGlobal.destroy();
+                if (chartId === 'fearGreedChartIndia' && fearGreedChartIndia) fearGreedChartIndia.destroy();
+                
+                const chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.historical.map(h => h.date),
+                        datasets: [{
+                            data: data.historical.map(h => h.score),
+                            borderColor: data.color,
+                            backgroundColor: data.color + '30',
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 0,
+                            borderWidth: 2,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { x: { display: false }, y: { display: false, min: 0, max: 100 } }
+                    }
+                });
+                
+                if (chartId === 'fearGreedChartGlobal') fearGreedChartGlobal = chart;
+                if (chartId === 'fearGreedChartIndia') fearGreedChartIndia = chart;
+            }, 50);
+        }
+
+        async function loadData() {
+            const btn = document.querySelector('.refresh-btn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Loading...';
+            
+            document.getElementById('content').innerHTML = '<div class="loading">Fetching latest prices...</div>';
+            
+            try {
+                const response = await fetch('/api/prices');
+                const data = await response.json();
+                renderDashboard(data);
+            } catch (error) {
+                document.getElementById('content').innerHTML = 
+                    `<div class="loading" style="color: #ef4444;">Error loading data: ${error.message}</div>`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🔄 Refresh Data';
+            }
+        }
+
+        function renderDashboard(data) {
+            const container = document.getElementById('content');
+            container.innerHTML = '<div class="dashboard" id="dashboard"></div>';
+            const dashboard = document.getElementById('dashboard');
+            
+            // Show status banner
+            const bannerEl = document.getElementById('statusBanner');
+            if (data.data_source === 'simulated') {
+                bannerEl.innerHTML = `
+                    <div class="demo-banner" style="background: linear-gradient(90deg, #3b82f6, #1d4ed8); color: #fff;">
+                        📊 Simulated Data Mode - Set API keys for live data 
+                        <a href="https://twelvedata.com" target="_blank" style="color: #fbbf24; margin-left: 10px;">Get Free API Key →</a>
+                    </div>`;
+            } else {
+                bannerEl.innerHTML = '<div class="demo-banner" style="background: linear-gradient(90deg, #10b981, #059669);">✅ Live Market Data</div>';
+            }
+            
+            // Destroy existing charts
+            Object.values(charts).forEach(chart => chart.destroy());
+            charts = {};
+
+            data.instruments.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = `card ${item.error ? 'error-card' : ''}`;
+                const sourceBadge = item.data_source === 'live' ? '<span class="demo-badge" style="background:#10b981;">LIVE</span>' : '';
+                
+                if (item.error) {
+                    card.innerHTML = `
+                        <div class="card-header">
+                            <div>
+                                <div class="instrument-name">${item.name}</div>
+                                <div class="ticker">${item.symbol || ''}</div>
+                            </div>
+                        </div>
+                        <p class="error-msg">⚠️ ${item.error}</p>
+                    `;
+                } else {
+                    const isPositive = item.change >= 0;
+                    const changeClass = isPositive ? 'positive' : 'negative';
+                    const arrow = isPositive ? '▲' : '▼';
+                    const currency = item.currency || '$';
+                    
+                    card.innerHTML = `
+                        <div class="card-header">
+                            <div>
+                                <div class="instrument-name">${item.name}${sourceBadge}</div>
+                                <div class="ticker">${item.symbol}</div>
+                            </div>
+                            <span class="change ${changeClass}">
+                                ${arrow} ${Math.abs(item.change_pct).toFixed(2)}%
+                            </span>
+                        </div>
+                        <div class="price">${currency}${item.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                        <div class="chart-container">
+                            <canvas id="chart-${index}"></canvas>
+                        </div>
+                        <div class="stats">
+                            <div class="stat">
+                                <div class="stat-label">Change</div>
+                                <div class="stat-value" style="color: ${isPositive ? '#10b981' : '#ef4444'}">
+                                    ${isPositive ? '+' : ''}${item.change.toFixed(2)}
+                                </div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-label">52W High</div>
+                                <div class="stat-value">${currency}${item.high_52w.toLocaleString()}</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-label">52W Low</div>
+                                <div class="stat-value">${currency}${item.low_52w.toLocaleString()}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                dashboard.appendChild(card);
+                
+                // Create sparkline chart
+                if (!item.error && item.sparkline) {
+                    setTimeout(() => createChart(index, item), 50);
+                }
+            });
+
+            document.getElementById('lastUpdated').textContent = 
+                `Last updated: ${new Date(data.fetched_at).toLocaleString()}`;
+        }
+
+        function createChart(index, item) {
+            const ctx = document.getElementById(`chart-${index}`);
+            if (!ctx) return;
+            
+            const isPositive = item.change >= 0;
+            const color = isPositive ? '#10b981' : '#ef4444';
+            
+            charts[index] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: item.dates,
+                    datasets: [{
+                        data: item.sparkline,
+                        borderColor: color,
+                        backgroundColor: color + '20',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        borderWidth: 2,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: (ctx) => `Price: ${ctx.raw.toFixed(2)}`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { display: false },
+                        y: { display: false }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+        }
+
+        // Load data on page load
+        loadData();
+        loadFearGreedGlobal();
+        loadFearGreedIndia();
+        
+        // Auto-refresh every 5 minutes
+        setInterval(() => {
+            loadData();
+            loadFearGreedGlobal();
+            loadFearGreedIndia();
+        }, 5 * 60 * 1000);
+
+        // Golden Cross Functions
+        async function loadGoldenCrosses() {
+            const btn = document.querySelector('.scan-btn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Scanning...';
+            
+            document.getElementById('crossContent').innerHTML = '<div class="loading">Scanning Indian stocks for DMA crossovers...</div>';
+            
+            try {
+                const response = await fetch('/api/golden-crosses');
+                const data = await response.json();
+                renderGoldenCrosses(data);
+            } catch (error) {
+                document.getElementById('crossContent').innerHTML = 
+                    `<div class="loading" style="color: #ef4444;">Error scanning: ${error.message}</div>`;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🔍 Scan for Crossovers';
+            }
+        }
+
+        function renderGoldenCrosses(data) {
+            const container = document.getElementById('crossContent');
+            
+            const html = `
+                <div class="cross-grid">
+                    <!-- Golden Crosses (Bullish Signal) -->
+                    <div class="cross-panel golden">
+                        <h3>✨ Golden Crosses (Buy Signal) <span class="count-badge">${data.golden_crosses.length}</span></h3>
+                        <div class="cross-list">
+                            ${data.golden_crosses.length === 0 
+                                ? '<p class="empty-message">No golden crosses in the last 5 days</p>'
+                                : data.golden_crosses.map(item => `
+                                    <div class="cross-item">
+                                        <div>
+                                            <div class="cross-item-name">${item.name}</div>
+                                            <div class="cross-item-ticker">${item.ticker}</div>
+                                            <div class="cross-item-dma">20 DMA: ${item.dma_20} | 200 DMA: ${item.dma_200}</div>
+                                        </div>
+                                        <div style="text-align: right;">
+                                            <div class="cross-item-price">₹${item.current_price.toLocaleString()}</div>
+                                            <div class="cross-item-date">${item.cross_date}</div>
+                                            <span class="badge-golden">${item.days_ago}d ago</span>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                        </div>
+                    </div>
+                    
+                    <!-- Death Crosses (Bearish Signal) -->
+                    <div class="cross-panel death">
+                        <h3>💀 Death Crosses (Sell Signal) <span class="count-badge">${data.death_crosses.length}</span></h3>
+                        <div class="cross-list">
+                            ${data.death_crosses.length === 0 
+                                ? '<p class="empty-message">No death crosses in the last 5 days</p>'
+                                : data.death_crosses.map(item => `
+                                    <div class="cross-item">
+                                        <div>
+                                            <div class="cross-item-name">${item.name}</div>
+                                            <div class="cross-item-ticker">${item.ticker}</div>
+                                            <div class="cross-item-dma">20 DMA: ${item.dma_20} | 200 DMA: ${item.dma_200}</div>
+                                        </div>
+                                        <div style="text-align: right;">
+                                            <div class="cross-item-price">₹${item.current_price.toLocaleString()}</div>
+                                            <div class="cross-item-date">${item.cross_date}</div>
+                                            <span class="badge-death">${item.days_ago}d ago</span>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                        </div>
+                    </div>
+                    
+                    <!-- Bullish Trend (20 DMA > 200 DMA) -->
+                    <div class="cross-panel bullish">
+                        <h3>📈 Bullish Trend (20 > 200 DMA) <span class="count-badge">${data.bullish_trend.length}</span></h3>
+                        <div class="cross-list">
+                            ${data.bullish_trend.length === 0 
+                                ? '<p class="empty-message">No stocks in bullish trend</p>'
+                                : data.bullish_trend.slice(0, 20).map(item => `
+                                    <div class="cross-item">
+                                        <div>
+                                            <div class="cross-item-name">${item.name}</div>
+                                            <div class="cross-item-ticker">${item.ticker}</div>
+                                            <div class="cross-item-dma">20 DMA: ${item.dma_20} | 200 DMA: ${item.dma_200}</div>
+                                        </div>
+                                        <div style="text-align: right;">
+                                            <div class="cross-item-price">₹${item.current_price.toLocaleString()}</div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            ${data.bullish_trend.length > 20 ? `<p class="empty-message">+${data.bullish_trend.length - 20} more...</p>` : ''}
+                        </div>
+                    </div>
+                    
+                    <!-- Bearish Trend (20 DMA < 200 DMA) -->
+                    <div class="cross-panel bearish">
+                        <h3>📉 Bearish Trend (20 < 200 DMA) <span class="count-badge">${data.bearish_trend.length}</span></h3>
+                        <div class="cross-list">
+                            ${data.bearish_trend.length === 0 
+                                ? '<p class="empty-message">No stocks in bearish trend</p>'
+                                : data.bearish_trend.slice(0, 20).map(item => `
+                                    <div class="cross-item">
+                                        <div>
+                                            <div class="cross-item-name">${item.name}</div>
+                                            <div class="cross-item-ticker">${item.ticker}</div>
+                                            <div class="cross-item-dma">20 DMA: ${item.dma_20} | 200 DMA: ${item.dma_200}</div>
+                                        </div>
+                                        <div style="text-align: right;">
+                                            <div class="cross-item-price">₹${item.current_price.toLocaleString()}</div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            ${data.bearish_trend.length > 20 ? `<p class="empty-message">+${data.bearish_trend.length - 20} more...</p>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+            
+            document.getElementById('crossLastUpdated').textContent = 
+                `Scanned ${data.total_scanned} stocks at ${new Date(data.fetched_at).toLocaleString()}`;
+        }
+
+        // Railroad Tracks Functions
+        async function loadRailroadTracks() {
+            const btn = document.querySelector('.railroad-container').previousElementSibling.previousElementSibling.querySelector('.scan-btn');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = '⏳ Scanning...';
+            }
+            
+            document.getElementById('railroadContent').innerHTML = '<div class="loading">Analyzing 20/40 SMA patterns...</div>';
+            
+            try {
+                const response = await fetch('/api/railroad-tracks');
+                const data = await response.json();
+                renderRailroadTracks(data);
+            } catch (error) {
+                document.getElementById('railroadContent').innerHTML = 
+                    `<div class="loading" style="color: #ef4444;">Error scanning: ${error.message}</div>`;
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = '🔍 Scan for Railroad Tracks';
+                }
+            }
+        }
+
+        function getStrengthClass(strength) {
+            if (strength >= 0.5) return 'strength-high';
+            if (strength >= 0.2) return 'strength-medium';
+            return 'strength-low';
+        }
+
+        function getStrengthLabel(strength) {
+            if (strength >= 0.5) return 'Strong';
+            if (strength >= 0.2) return 'Moderate';
+            return 'Weak';
+        }
+
+        function renderRailroadTracks(data) {
+            const container = document.getElementById('railroadContent');
+            
+            const renderTrackList = (items, emptyMsg) => {
+                if (items.length === 0) {
+                    return `<p class="empty-message">${emptyMsg}</p>`;
+                }
+                return items.map(item => `
+                    <div class="track-item">
+                        <div class="track-info">
+                            <div class="track-name">${item.name}</div>
+                            <div class="track-ticker">${item.symbol}</div>
+                            <div class="track-smas">
+                                <span style="color: #60a5fa;">20 SMA: ₹${item.sma_20.toLocaleString()}</span> |
+                                <span style="color: #f472b6;">40 SMA: ₹${item.sma_40.toLocaleString()}</span>
+                            </div>
+                            <div class="railroad-visual">
+                                <div class="track-line sma20"></div>
+                                <div class="track-line sma40"></div>
+                                <span style="font-size: 0.6rem; color: #888; margin-left: 5px;">Gap: ${item.gap_pct}%</span>
+                            </div>
+                        </div>
+                        <div class="track-metrics">
+                            <div class="track-price">₹${item.price.toLocaleString()}</div>
+                            <div class="track-strength ${getStrengthClass(item.trend_strength)}">
+                                ${getStrengthLabel(item.trend_strength)} Trend
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            };
+            
+            const html = `
+                <div class="railroad-grid">
+                    <!-- Bullish Railroad Tracks -->
+                    <div class="railroad-panel bullish-track">
+                        <h3>
+                            <span class="railroad-icon">🚂</span>
+                            Bullish Railroad Tracks (Rising Parallel SMAs)
+                            <span class="count-badge">${data.bullish_tracks.length}</span>
+                        </h3>
+                        <p style="font-size: 0.75rem; color: #888; margin-bottom: 12px;">
+                            20 SMA > 40 SMA, both rising in parallel — Strong uptrend
+                        </p>
+                        <div class="cross-list">
+                            ${renderTrackList(data.bullish_tracks, 'No bullish railroad patterns found')}
+                        </div>
+                    </div>
+                    
+                    <!-- Bearish Railroad Tracks -->
+                    <div class="railroad-panel bearish-track">
+                        <h3>
+                            <span class="railroad-icon">🚃</span>
+                            Bearish Railroad Tracks (Falling Parallel SMAs)
+                            <span class="count-badge">${data.bearish_tracks.length}</span>
+                        </h3>
+                        <p style="font-size: 0.75rem; color: #888; margin-bottom: 12px;">
+                            20 SMA < 40 SMA, both falling in parallel — Strong downtrend
+                        </p>
+                        <div class="cross-list">
+                            ${renderTrackList(data.bearish_tracks, 'No bearish railroad patterns found')}
+                        </div>
+                    </div>
+                    
+                    <!-- Converging SMAs -->
+                    <div class="railroad-panel converging">
+                        <h3>
+                            <span class="railroad-icon">⚡</span>
+                            Converging SMAs (Potential Crossover)
+                            <span class="count-badge">${data.converging.length}</span>
+                        </h3>
+                        <p style="font-size: 0.75rem; color: #888; margin-bottom: 12px;">
+                            SMAs getting closer — Watch for breakout signals
+                        </p>
+                        <div class="cross-list">
+                            ${renderTrackList(data.converging, 'No converging patterns found')}
+                        </div>
+                    </div>
+                    
+                    <!-- Diverging SMAs -->
+                    <div class="railroad-panel diverging">
+                        <h3>
+                            <span class="railroad-icon">📊</span>
+                            Diverging SMAs (Trend Strengthening)
+                            <span class="count-badge">${data.diverging.length}</span>
+                        </h3>
+                        <p style="font-size: 0.75rem; color: #888; margin-bottom: 12px;">
+                            SMAs spreading apart — Trend gaining momentum
+                        </p>
+                        <div class="cross-list">
+                            ${renderTrackList(data.diverging, 'No diverging patterns found')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+            
+            document.getElementById('railroadLastUpdated').textContent = 
+                `Analyzed ${data.total_scanned} stocks at ${new Date(data.fetched_at).toLocaleString()}`;
+        }
+    </script>
+</body>
+</html>
