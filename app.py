@@ -7,6 +7,7 @@ import logging
 import requests
 import random
 import os
+from pathlib import Path
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -16,25 +17,97 @@ CORS(app)
 
 # Simple in-memory cache
 _cache = {}
-CACHE_TTL_SECONDS = 300  # 5 minutes
+
+
+# ============================================================================
+# CONFIGURATION LOADER
+# ============================================================================
+def load_config():
+    """
+    Load configuration from multiple sources with priority:
+    1. Environment variables (highest priority)
+    2. config.properties file in the app directory
+    3. Default values (lowest priority)
+    """
+    config = {
+        "TWELVE_DATA_API_KEY": "",
+        "FMP_API_KEY": "",
+        "CACHE_TTL_SECONDS": 300,
+    }
+    
+    # Try to load from config.properties file
+    config_file = Path(__file__).parent / "config.properties"
+    if config_file.exists():
+        logger.info(f"Loading configuration from {config_file}")
+        try:
+            with open(config_file, "r") as f:
+                for line in f:
+                    line = line.strip()
+                    # Skip comments and empty lines
+                    if not line or line.startswith("#"):
+                        continue
+                    if "=" in line:
+                        key, value = line.split("=", 1)
+                        key = key.strip()
+                        value = value.strip()
+                        # Only use non-placeholder values
+                        if key in config and value and not value.startswith("your_"):
+                            if key == "CACHE_TTL_SECONDS":
+                                config[key] = int(value)
+                            else:
+                                config[key] = value
+                            logger.info(f"Loaded {key} from config.properties")
+        except Exception as e:
+            logger.warning(f"Error reading config.properties: {e}")
+    else:
+        logger.info(f"No config.properties found at {config_file}, using defaults")
+    
+    # Environment variables override config file
+    for key in config:
+        env_value = os.environ.get(key)
+        if env_value:
+            if key == "CACHE_TTL_SECONDS":
+                config[key] = int(env_value)
+            else:
+                config[key] = env_value
+            logger.info(f"Loaded {key} from environment variable")
+    
+    return config
+
+
+# Load configuration
+_config = load_config()
+TWELVE_DATA_API_KEY = _config["TWELVE_DATA_API_KEY"]
+FMP_API_KEY = _config["FMP_API_KEY"]
+CACHE_TTL_SECONDS = _config["CACHE_TTL_SECONDS"]
+
+# Log configuration status
+if TWELVE_DATA_API_KEY:
+    logger.info("Twelve Data API key configured")
+else:
+    logger.info("Twelve Data API key NOT configured - will use simulated data")
+    
+if FMP_API_KEY:
+    logger.info("FMP API key configured")
+else:
+    logger.info("FMP API key NOT configured")
+
 
 # ============================================================================
 # FREE API CONFIGURATION
 # ============================================================================
 # This dashboard uses simulated realistic market data by default.
-# For REAL data, sign up for free API keys:
+# For REAL data, configure API keys in one of these ways:
 #
-# 1. Twelve Data - https://twelvedata.com (800 calls/day free)
-# 2. Alpha Vantage - https://alphavantage.co (25 calls/day free)
-# 3. Financial Modeling Prep - https://financialmodelingprep.com
-#
-# Set environment variables:
+# Option 1: Edit config.properties file in the app directory
+# Option 2: Set environment variables:
 #   TWELVE_DATA_API_KEY=your_key
 #   FMP_API_KEY=your_key
+#
+# Get free API keys from:
+# 1. Twelve Data - https://twelvedata.com (800 calls/day free)
+# 2. Financial Modeling Prep - https://financialmodelingprep.com
 # ============================================================================
-
-TWELVE_DATA_API_KEY = os.environ.get("TWELVE_DATA_API_KEY", "")
-FMP_API_KEY = os.environ.get("FMP_API_KEY", "")
 
 # Instrument definitions with realistic base prices and volatility
 INSTRUMENTS = {
@@ -112,6 +185,8 @@ def generate_realistic_history(base_price: float, volatility: float, days: int =
 def try_fetch_real_data(symbol: str, api_type: str = "twelve") -> dict | None:
     """Try to fetch real data from free APIs."""
     
+    logger.info(f"🔍 Attempting to fetch real data for {symbol}...")
+    
     # Try Twelve Data
     if api_type == "twelve" and TWELVE_DATA_API_KEY:
         try:
@@ -122,29 +197,50 @@ def try_fetch_real_data(symbol: str, api_type: str = "twelve") -> dict | None:
                 "outputsize": 30,
                 "apikey": TWELVE_DATA_API_KEY
             }
+            logger.info(f"📡 Calling Twelve Data API for {symbol}...")
             resp = requests.get(url, params=params, timeout=10)
+            logger.info(f"📡 Twelve Data response status: {resp.status_code}")
             if resp.status_code == 200:
                 data = resp.json()
                 if "values" in data:
-                    logger.info(f"Got real data for {symbol} from Twelve Data")
+                    logger.info(f"✅ Got real data for {symbol} from Twelve Data")
                     return data
+                elif "code" in data or "message" in data:
+                    logger.warning(f"⚠️ Twelve Data API error for {symbol}: {data.get('message', data)}")
+            else:
+                logger.warning(f"⚠️ Twelve Data HTTP {resp.status_code} for {symbol}")
+        except requests.exceptions.Timeout:
+            logger.warning(f"⏱️ Twelve Data TIMEOUT for {symbol} - likely blocked by firewall")
+        except requests.exceptions.ConnectionError as e:
+            logger.warning(f"🔌 Twelve Data CONNECTION ERROR for {symbol}: {e}")
         except Exception as e:
-            logger.warning(f"Twelve Data error: {e}")
+            logger.warning(f"❌ Twelve Data error for {symbol}: {e}")
     
     # Try Financial Modeling Prep
     if FMP_API_KEY:
         try:
             url = f"https://financialmodelingprep.com/api/v3/historical-price-full/{symbol}"
             params = {"apikey": FMP_API_KEY, "timeseries": 30}
+            logger.info(f"📡 Calling FMP API for {symbol}...")
             resp = requests.get(url, params=params, timeout=10)
+            logger.info(f"📡 FMP response status: {resp.status_code}")
             if resp.status_code == 200:
                 data = resp.json()
                 if "historical" in data:
-                    logger.info(f"Got real data for {symbol} from FMP")
+                    logger.info(f"✅ Got real data for {symbol} from FMP")
                     return data
+                else:
+                    logger.warning(f"⚠️ FMP no historical data for {symbol}: {data}")
+            else:
+                logger.warning(f"⚠️ FMP HTTP {resp.status_code} for {symbol}")
+        except requests.exceptions.Timeout:
+            logger.warning(f"⏱️ FMP TIMEOUT for {symbol} - likely blocked by firewall")
+        except requests.exceptions.ConnectionError as e:
+            logger.warning(f"🔌 FMP CONNECTION ERROR for {symbol}: {e}")
         except Exception as e:
-            logger.warning(f"FMP error: {e}")
+            logger.warning(f"❌ FMP error for {symbol}: {e}")
     
+    logger.info(f"📊 Using simulated data for {symbol}")
     return None
 
 
@@ -773,6 +869,476 @@ def get_railroad_tracks():
         **results,
         "fetched_at": datetime.now().isoformat(),
         "total_scanned": len(INDIAN_STOCKS),
+    }
+    
+    _cache[cache_key] = (response_data, datetime.now())
+    return jsonify(response_data)
+
+
+def calculate_relative_strength(stocks: dict):
+    """
+    Calculate Relative Strength of stocks vs their parent index.
+    Shows stocks outperforming/underperforming Nifty 50.
+    
+    RS = (Stock Performance / Index Performance) over different periods.
+    """
+    base_date = datetime.now()
+    
+    # Get Nifty 50 data as benchmark
+    nifty_seed = hash("Nifty 50 Index" + base_date.strftime("%Y-%m-%d"))
+    nifty_history = generate_realistic_history(22150, 0.012, days=90, seed=nifty_seed)
+    
+    # Calculate Nifty returns over different periods
+    nifty_returns = {
+        "1w": (nifty_history[-1] - nifty_history[-6]) / nifty_history[-6] * 100 if len(nifty_history) > 6 else 0,
+        "1m": (nifty_history[-1] - nifty_history[-22]) / nifty_history[-22] * 100 if len(nifty_history) > 22 else 0,
+        "3m": (nifty_history[-1] - nifty_history[0]) / nifty_history[0] * 100,
+    }
+    
+    results = {
+        "outperformers": [],
+        "underperformers": [],
+        "benchmark": {
+            "name": "Nifty 50",
+            "returns": nifty_returns,
+        }
+    }
+    
+    # Exclude indices from stock analysis
+    exclude_symbols = ["NIFTY", "BANKNIFTY", "NIFTYIT"]
+    
+    for name, config in stocks.items():
+        if config["symbol"] in exclude_symbols:
+            continue
+            
+        try:
+            seed = hash(name + base_date.strftime("%Y-%m-%d"))
+            history = generate_realistic_history(
+                config["base_price"],
+                config["volatility"],
+                days=90,
+                seed=seed
+            )
+            
+            if len(history) < 22:
+                continue
+            
+            current_price = history[-1]
+            
+            # Calculate stock returns
+            stock_returns = {
+                "1w": (history[-1] - history[-6]) / history[-6] * 100 if len(history) > 6 else 0,
+                "1m": (history[-1] - history[-22]) / history[-22] * 100 if len(history) > 22 else 0,
+                "3m": (history[-1] - history[0]) / history[0] * 100,
+            }
+            
+            # Calculate Relative Strength (RS) vs Nifty
+            rs_values = {
+                "1w": stock_returns["1w"] - nifty_returns["1w"],
+                "1m": stock_returns["1m"] - nifty_returns["1m"],
+                "3m": stock_returns["3m"] - nifty_returns["3m"],
+            }
+            
+            # Overall RS score (weighted average)
+            rs_score = rs_values["1w"] * 0.2 + rs_values["1m"] * 0.3 + rs_values["3m"] * 0.5
+            
+            # RS momentum (is RS improving?)
+            # Calculate RS line slope
+            rs_line = []
+            for i in range(20, 0, -1):
+                if len(history) > i and len(nifty_history) > i:
+                    stock_ret = (history[-1] - history[-i]) / history[-i]
+                    nifty_ret = (nifty_history[-1] - nifty_history[-i]) / nifty_history[-i]
+                    rs_line.append(stock_ret / max(nifty_ret, 0.001) if nifty_ret != 0 else 1)
+            
+            rs_momentum = "rising" if len(rs_line) > 5 and rs_line[-1] > rs_line[-5] else "falling"
+            
+            item = {
+                "name": name,
+                "symbol": config["symbol"],
+                "price": round(current_price, 2),
+                "stock_returns": {k: round(v, 2) for k, v in stock_returns.items()},
+                "rs_vs_nifty": {k: round(v, 2) for k, v in rs_values.items()},
+                "rs_score": round(rs_score, 2),
+                "rs_momentum": rs_momentum,
+                "outperforming": rs_score > 0,
+            }
+            
+            if rs_score > 0:
+                results["outperformers"].append(item)
+            else:
+                results["underperformers"].append(item)
+                
+        except Exception as e:
+            logger.warning(f"Error calculating RS for {name}: {e}")
+    
+    # Sort by RS score
+    results["outperformers"].sort(key=lambda x: x["rs_score"], reverse=True)
+    results["underperformers"].sort(key=lambda x: x["rs_score"])
+    
+    return results
+
+
+@app.route("/api/relative-strength")
+def get_relative_strength():
+    """Return stocks ranked by relative strength vs Nifty 50."""
+    cache_key = "relative_strength"
+    
+    if cache_key in _cache:
+        cached_data, cache_time = _cache[cache_key]
+        if (datetime.now() - cache_time).total_seconds() < CACHE_TTL_SECONDS:
+            return jsonify(cached_data)
+    
+    results = calculate_relative_strength(INDIAN_STOCKS)
+    
+    response_data = {
+        **results,
+        "fetched_at": datetime.now().isoformat(),
+        "total_scanned": len(INDIAN_STOCKS) - 3,  # Exclude indices
+    }
+    
+    _cache[cache_key] = (response_data, datetime.now())
+    return jsonify(response_data)
+
+
+# Sector definitions with constituent stocks
+INDIAN_SECTORS = {
+    "Banking": {
+        "stocks": ["HDFC Bank", "ICICI Bank", "SBI", "Kotak Bank", "Axis Bank", "IndusInd Bank"],
+        "index": "Nifty Bank",
+        "color": "#3b82f6"
+    },
+    "IT": {
+        "stocks": ["TCS", "Infosys", "Wipro", "HCL Tech", "Tech Mahindra"],
+        "index": "Nifty IT",
+        "color": "#8b5cf6"
+    },
+    "Energy": {
+        "stocks": ["Reliance", "ONGC", "Coal India", "NTPC", "Power Grid"],
+        "index": "Nifty 50 Index",
+        "color": "#f59e0b"
+    },
+    "Metals": {
+        "stocks": ["Tata Steel", "JSW Steel"],
+        "index": "Nifty 50 Index",
+        "color": "#6b7280"
+    },
+    "Auto": {
+        "stocks": ["Maruti", "M&M", "Tata Motors"],
+        "index": "Nifty 50 Index",
+        "color": "#ef4444"
+    },
+    "Pharma": {
+        "stocks": ["Sun Pharma"],
+        "index": "Nifty 50 Index",
+        "color": "#10b981"
+    },
+    "FMCG": {
+        "stocks": ["HUL", "ITC", "Asian Paints", "Titan"],
+        "index": "Nifty 50 Index",
+        "color": "#ec4899"
+    },
+    "Infra": {
+        "stocks": ["L&T", "Adani Ports"],
+        "index": "Nifty 50 Index",
+        "color": "#14b8a6"
+    },
+    "Telecom": {
+        "stocks": ["Bharti Airtel"],
+        "index": "Nifty 50 Index",
+        "color": "#06b6d4"
+    },
+    "Finance": {
+        "stocks": ["Bajaj Finance"],
+        "index": "Nifty 50 Index",
+        "color": "#84cc16"
+    },
+}
+
+
+def analyze_sectors():
+    """
+    Analyze sector performance and identify:
+    1. Top performing sectors
+    2. Bottomed out sectors (showing reversal signs)
+    3. Underperforming sectors
+    
+    Also provides top 2 stocks in each category.
+    """
+    base_date = datetime.now()
+    
+    sector_results = []
+    
+    for sector_name, sector_config in INDIAN_SECTORS.items():
+        stock_performances = []
+        
+        for stock_name in sector_config["stocks"]:
+            if stock_name not in INDIAN_STOCKS:
+                continue
+                
+            config = INDIAN_STOCKS[stock_name]
+            seed = hash(stock_name + base_date.strftime("%Y-%m-%d"))
+            history = generate_realistic_history(
+                config["base_price"],
+                config["volatility"],
+                days=90,
+                seed=seed
+            )
+            
+            if len(history) < 30:
+                continue
+            
+            current_price = history[-1]
+            
+            # Calculate returns
+            returns_1w = (history[-1] - history[-6]) / history[-6] * 100 if len(history) > 6 else 0
+            returns_1m = (history[-1] - history[-22]) / history[-22] * 100 if len(history) > 22 else 0
+            returns_3m = (history[-1] - history[0]) / history[0] * 100
+            
+            # Check for reversal signs (price bouncing from recent lows)
+            min_30d = min(history[-30:])
+            max_30d = max(history[-30:])
+            min_idx = history[-30:].index(min_30d)
+            bounce_from_low = (current_price - min_30d) / min_30d * 100
+            is_near_bottom = min_idx < 10 and bounce_from_low > 3  # Low was recent and bounced
+            
+            # RSI-like momentum indicator
+            gains = sum(max(0, history[i] - history[i-1]) for i in range(-14, 0))
+            losses = sum(max(0, history[i-1] - history[i]) for i in range(-14, 0))
+            rsi = 100 - (100 / (1 + gains / max(losses, 0.01)))
+            
+            stock_performances.append({
+                "name": stock_name,
+                "symbol": config["symbol"],
+                "price": round(current_price, 2),
+                "returns_1w": round(returns_1w, 2),
+                "returns_1m": round(returns_1m, 2),
+                "returns_3m": round(returns_3m, 2),
+                "bounce_from_low": round(bounce_from_low, 2),
+                "is_near_bottom": is_near_bottom,
+                "rsi": round(rsi, 1),
+            })
+        
+        if not stock_performances:
+            continue
+        
+        # Calculate sector averages
+        avg_returns_1w = sum(s["returns_1w"] for s in stock_performances) / len(stock_performances)
+        avg_returns_1m = sum(s["returns_1m"] for s in stock_performances) / len(stock_performances)
+        avg_returns_3m = sum(s["returns_3m"] for s in stock_performances) / len(stock_performances)
+        avg_bounce = sum(s["bounce_from_low"] for s in stock_performances) / len(stock_performances)
+        bottomed_stocks = sum(1 for s in stock_performances if s["is_near_bottom"])
+        
+        # Sector score (weighted)
+        sector_score = avg_returns_1w * 0.3 + avg_returns_1m * 0.4 + avg_returns_3m * 0.3
+        
+        # Is sector showing reversal? (bottomed out)
+        is_bottomed = avg_returns_3m < -5 and avg_bounce > 5 and bottomed_stocks >= len(stock_performances) * 0.5
+        
+        sector_results.append({
+            "sector": sector_name,
+            "color": sector_config["color"],
+            "stocks_count": len(stock_performances),
+            "avg_returns": {
+                "1w": round(avg_returns_1w, 2),
+                "1m": round(avg_returns_1m, 2),
+                "3m": round(avg_returns_3m, 2),
+            },
+            "sector_score": round(sector_score, 2),
+            "avg_bounce": round(avg_bounce, 2),
+            "is_bottomed": is_bottomed,
+            "stocks": stock_performances,
+        })
+    
+    # Sort and categorize
+    sector_results.sort(key=lambda x: x["sector_score"], reverse=True)
+    
+    # Top performing (top 3 by score)
+    top_performing = [s for s in sector_results if s["sector_score"] > 2][:3]
+    
+    # Bottomed out (showing reversal signs)
+    bottomed_out = [s for s in sector_results if s["is_bottomed"]]
+    
+    # Underperforming (bottom 3 by score, excluding bottomed)
+    underperforming = [s for s in sector_results if s["sector_score"] < -2 and not s["is_bottomed"]][:3]
+    
+    # Get top 2 stocks for each category
+    def get_top_stocks(sectors, sort_key="returns_1m", reverse=True, limit=2):
+        all_stocks = []
+        for sector in sectors:
+            for stock in sector["stocks"]:
+                stock["sector"] = sector["sector"]
+                stock["sector_color"] = sector["color"]
+                all_stocks.append(stock)
+        all_stocks.sort(key=lambda x: x.get(sort_key, 0), reverse=reverse)
+        return all_stocks[:limit]
+    
+    return {
+        "top_performing": {
+            "sectors": top_performing,
+            "top_stocks": get_top_stocks(top_performing, "returns_1m", True, 2),
+        },
+        "bottomed_out": {
+            "sectors": bottomed_out,
+            "top_stocks": get_top_stocks(bottomed_out, "bounce_from_low", True, 2),
+        },
+        "underperforming": {
+            "sectors": underperforming,
+            "top_stocks": get_top_stocks(underperforming, "returns_1m", False, 2),
+        },
+        "all_sectors": sector_results,
+    }
+
+
+@app.route("/api/sector-analysis")
+def get_sector_analysis():
+    """Return sector performance analysis."""
+    cache_key = "sector_analysis"
+    
+    if cache_key in _cache:
+        cached_data, cache_time = _cache[cache_key]
+        if (datetime.now() - cache_time).total_seconds() < CACHE_TTL_SECONDS:
+            return jsonify(cached_data)
+    
+    results = analyze_sectors()
+    
+    response_data = {
+        **results,
+        "fetched_at": datetime.now().isoformat(),
+        "total_sectors": len(INDIAN_SECTORS),
+    }
+    
+    _cache[cache_key] = (response_data, datetime.now())
+    return jsonify(response_data)
+
+
+def detect_rounding_bottom(stocks: dict):
+    """
+    Detect stocks showing a rounding bottom pattern.
+    
+    Rounding bottom (saucer bottom) characteristics:
+    1. Price declined over a period
+    2. Price stabilized and formed a rounded base
+    3. Price is now recovering from the base
+    4. Volume typically increases on the right side
+    
+    We look for:
+    - 3M return negative (was in decline)
+    - Recent price above the 30-day low
+    - Gradual recovery (bounce from low > 5%)
+    - Price forming a "U" shape pattern
+    """
+    base_date = datetime.now()
+    results = []
+    
+    # Exclude indices
+    exclude_symbols = ["NIFTY", "BANKNIFTY", "NIFTYIT"]
+    
+    for name, config in stocks.items():
+        if config["symbol"] in exclude_symbols:
+            continue
+            
+        try:
+            seed = hash(name + base_date.strftime("%Y-%m-%d"))
+            history = generate_realistic_history(
+                config["base_price"],
+                config["volatility"],
+                days=90,
+                seed=seed
+            )
+            
+            if len(history) < 60:
+                continue
+            
+            current_price = history[-1]
+            
+            # Calculate metrics
+            # 3M return (was in decline?)
+            returns_3m = (history[-1] - history[0]) / history[0] * 100
+            
+            # Find the bottom (minimum price) and when it occurred
+            min_price = min(history)
+            min_idx = history.index(min_price)
+            days_since_bottom = len(history) - min_idx - 1
+            
+            # Bounce from bottom
+            bounce_pct = (current_price - min_price) / min_price * 100
+            
+            # Check if bottom was in the middle portion (rounding pattern)
+            # Bottom should be roughly in the middle third of the period
+            is_middle_bottom = 20 < min_idx < 70
+            
+            # Calculate the "roundness" - price should gradually decline then gradually rise
+            # Compare first third, middle third, last third averages
+            first_third = sum(history[:30]) / 30
+            middle_third = sum(history[30:60]) / 30
+            last_third = sum(history[60:]) / 30
+            
+            # Rounding bottom: first > middle, last > middle (U shape)
+            is_u_shape = first_third > middle_third and last_third > middle_third
+            
+            # Recovery strength (last 10 days momentum)
+            recent_momentum = (history[-1] - history[-10]) / history[-10] * 100 if len(history) > 10 else 0
+            
+            # Rounding bottom criteria
+            is_rounding_bottom = (
+                returns_3m < 5 and  # Was not strongly trending up
+                bounce_pct > 5 and  # Meaningful bounce from low
+                bounce_pct < 25 and  # Not already recovered too much
+                is_middle_bottom and  # Bottom in middle
+                is_u_shape and  # U-shaped pattern
+                days_since_bottom > 5 and  # Some time since bottom
+                recent_momentum > 0  # Currently recovering
+            )
+            
+            if is_rounding_bottom:
+                # Calculate pattern strength score
+                pattern_score = (
+                    min(bounce_pct / 15 * 30, 30) +  # Bounce contribution (max 30)
+                    min(recent_momentum * 5, 25) +  # Recent momentum (max 25)
+                    (25 if 30 < min_idx < 50 else 15) +  # How centered the bottom is (max 25)
+                    min((first_third - middle_third) / middle_third * 100, 20)  # U-shape depth (max 20)
+                )
+                
+                results.append({
+                    "name": name,
+                    "symbol": config["symbol"],
+                    "price": round(current_price, 2),
+                    "min_price": round(min_price, 2),
+                    "bounce_pct": round(bounce_pct, 2),
+                    "days_since_bottom": days_since_bottom,
+                    "returns_3m": round(returns_3m, 2),
+                    "recent_momentum": round(recent_momentum, 2),
+                    "pattern_score": round(pattern_score, 1),
+                    "stage": "Early Recovery" if bounce_pct < 10 else "Mid Recovery" if bounce_pct < 18 else "Late Recovery",
+                })
+                
+        except Exception as e:
+            logger.warning(f"Error detecting rounding bottom for {name}: {e}")
+    
+    # Sort by pattern score
+    results.sort(key=lambda x: x["pattern_score"], reverse=True)
+    
+    return results
+
+
+@app.route("/api/rounding-bottom")
+def get_rounding_bottom():
+    """Return stocks showing rounding bottom pattern."""
+    cache_key = "rounding_bottom"
+    
+    if cache_key in _cache:
+        cached_data, cache_time = _cache[cache_key]
+        if (datetime.now() - cache_time).total_seconds() < CACHE_TTL_SECONDS:
+            return jsonify(cached_data)
+    
+    results = detect_rounding_bottom(INDIAN_STOCKS)
+    
+    response_data = {
+        "stocks": results,
+        "fetched_at": datetime.now().isoformat(),
+        "total_found": len(results),
+        "total_scanned": len(INDIAN_STOCKS) - 3,
     }
     
     _cache[cache_key] = (response_data, datetime.now())
