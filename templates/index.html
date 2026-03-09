@@ -547,9 +547,531 @@
         .track-line.sma40 {
             background: #f472b6;
         }
+        /* Relative Strength Widget */
+        .rs-container {
+            max-width: 1600px;
+            margin: 0 auto 40px;
+        }
+        .rs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+        .rs-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .rs-panel h3 {
+            font-size: 1rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .rs-panel.outperform h3 {
+            color: #22c55e;
+        }
+        .rs-panel.underperform h3 {
+            color: #ef4444;
+        }
+        .rs-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            transition: background 0.2s;
+        }
+        .rs-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .rs-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .rs-name {
+            font-weight: 600;
+            color: #fff;
+        }
+        .rs-ticker {
+            font-size: 0.75rem;
+            color: #666;
+        }
+        .rs-returns {
+            display: flex;
+            gap: 8px;
+            margin-top: 5px;
+        }
+        .rs-return-chip {
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .rs-return-chip.positive {
+            color: #22c55e;
+        }
+        .rs-return-chip.negative {
+            color: #ef4444;
+        }
+        .rs-metrics {
+            text-align: right;
+        }
+        .rs-score {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+        .rs-score.positive {
+            color: #22c55e;
+        }
+        .rs-score.negative {
+            color: #ef4444;
+        }
+        .rs-momentum {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 8px;
+            margin-top: 4px;
+            display: inline-block;
+        }
+        .rs-momentum.rising {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+        .rs-momentum.falling {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        .rs-benchmark {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .rs-benchmark-title {
+            color: #818cf8;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .rs-benchmark-returns {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        .rs-benchmark-item {
+            text-align: center;
+        }
+        .rs-benchmark-label {
+            font-size: 0.7rem;
+            color: #888;
+        }
+        .rs-benchmark-value {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        /* Sector Analysis Widget */
+        .sector-container {
+            max-width: 1600px;
+            margin: 0 auto 40px;
+        }
+        .sector-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        .sector-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .sector-panel h3 {
+            font-size: 1rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .sector-panel.top-perform h3 {
+            color: #22c55e;
+        }
+        .sector-panel.bottomed h3 {
+            color: #f59e0b;
+        }
+        .sector-panel.underperform h3 {
+            color: #ef4444;
+        }
+        .sector-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-left: 3px solid;
+        }
+        .sector-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .sector-name {
+            font-weight: 600;
+            color: #fff;
+            font-size: 0.95rem;
+        }
+        .sector-score {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        .sector-returns {
+            display: flex;
+            gap: 10px;
+            font-size: 0.7rem;
+            margin-bottom: 8px;
+        }
+        .sector-return-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .sector-return-label {
+            color: #666;
+        }
+        .sector-return-value {
+            font-weight: 600;
+        }
+        .sector-stocks {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 8px;
+            margin-top: 8px;
+        }
+        .sector-stocks-title {
+            font-size: 0.7rem;
+            color: #888;
+            margin-bottom: 6px;
+        }
+        .top-stock-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 8px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 6px;
+            margin-bottom: 4px;
+            font-size: 0.8rem;
+        }
+        .top-stock-name {
+            color: #fff;
+        }
+        .top-stock-return {
+            font-weight: 600;
+        }
+        .sector-badge {
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 6px;
+            margin-left: 8px;
+        }
+        .featured-stocks {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        .featured-stocks h4 {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .featured-stock-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .featured-stock-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .featured-stock-name {
+            font-weight: 600;
+            color: #fff;
+        }
+        .featured-stock-sector {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-top: 3px;
+        }
+        .featured-stock-metrics {
+            text-align: right;
+        }
+        .featured-stock-price {
+            font-weight: 600;
+            color: #fff;
+        }
+        .featured-stock-change {
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        /* Data Mode Indicator */
+        .data-mode-indicator {
+            position: fixed;
+            top: 10px;
+            right: 20px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .data-mode-indicator.live {
+            background: linear-gradient(90deg, #10b981, #059669);
+            color: #fff;
+        }
+        .data-mode-indicator.simulated {
+            background: linear-gradient(90deg, #f59e0b, #d97706);
+            color: #000;
+        }
+        .data-mode-indicator.loading {
+            background: rgba(100, 100, 100, 0.8);
+            color: #fff;
+        }
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        .pulse-dot.live {
+            background: #fff;
+        }
+        .pulse-dot.simulated {
+            background: #000;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        /* API Keys Hover Panel */
+        .api-keys-panel {
+            position: fixed;
+            top: 50px;
+            right: 20px;
+            background: rgba(30, 30, 30, 0.95);
+            border-radius: 12px;
+            padding: 15px 20px;
+            z-index: 999;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-width: 280px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+        .api-keys-panel.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .api-keys-panel h4 {
+            margin: 0 0 12px 0;
+            color: #f59e0b;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .api-keys-panel p {
+            margin: 0 0 10px 0;
+            color: #aaa;
+            font-size: 0.8rem;
+            line-height: 1.4;
+        }
+        .api-keys-panel a {
+            display: inline-block;
+            margin-top: 5px;
+            color: #3b82f6;
+            text-decoration: none;
+            font-size: 0.8rem;
+        }
+        .api-keys-panel a:hover {
+            color: #60a5fa;
+            text-decoration: underline;
+        }
+        .api-keys-panel ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .api-keys-panel li {
+            color: #ccc;
+            font-size: 0.75rem;
+            margin-bottom: 5px;
+        }
+        .api-keys-panel code {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.7rem;
+            color: #fbbf24;
+        }
+        /* Rounding Bottom Widget */
+        .rb-container {
+            max-width: 1200px;
+            margin: 0 auto 40px;
+        }
+        .rb-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .rb-panel h3 {
+            font-size: 1rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #a78bfa;
+        }
+        .rb-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+        }
+        .rb-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 15px;
+            border-left: 3px solid #a78bfa;
+            transition: transform 0.2s;
+        }
+        .rb-card:hover {
+            transform: translateX(5px);
+        }
+        .rb-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        .rb-name {
+            font-weight: 600;
+            color: #fff;
+        }
+        .rb-symbol {
+            font-size: 0.75rem;
+            color: #666;
+        }
+        .rb-score {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #a78bfa;
+        }
+        .rb-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            font-size: 0.75rem;
+        }
+        .rb-metric {
+            display: flex;
+            flex-direction: column;
+        }
+        .rb-metric-label {
+            color: #666;
+        }
+        .rb-metric-value {
+            font-weight: 600;
+            color: #fff;
+        }
+        .rb-stage {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .rb-stage.early {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+        .rb-stage.mid {
+            background: rgba(234, 179, 8, 0.2);
+            color: #eab308;
+        }
+        .rb-stage.late {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+        .rb-pattern-visual {
+            height: 30px;
+            margin-top: 10px;
+            background: linear-gradient(90deg, 
+                rgba(239, 68, 68, 0.3) 0%, 
+                rgba(239, 68, 68, 0.5) 30%, 
+                rgba(234, 179, 8, 0.3) 50%, 
+                rgba(34, 197, 94, 0.3) 70%, 
+                rgba(34, 197, 94, 0.5) 100%);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        .rb-pattern-visual::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 30'%3E%3Cpath d='M0,10 Q25,25 50,25 Q75,25 100,5' stroke='white' stroke-width='2' fill='none'/%3E%3C/svg%3E") no-repeat center;
+            background-size: 100% 100%;
+            opacity: 0.6;
+        }
     </style>
 </head>
 <body>
+    <!-- Data Mode Indicator (fixed position) -->
+    <div class="data-mode-indicator loading" id="dataModeIndicator" onmouseenter="showApiKeysPanel()" onmouseleave="hideApiKeysPanel()">
+        <span class="pulse-dot"></span>
+        <span id="dataModeText">Loading...</span>
+    </div>
+    
+    <!-- API Keys Hover Panel -->
+    <div class="api-keys-panel" id="apiKeysPanel" onmouseenter="showApiKeysPanel()" onmouseleave="hideApiKeysPanel()">
+        <h4>🔑 API Keys Configuration</h4>
+        <p>To get live market data, configure API keys in <code>config.properties</code>:</p>
+        <ul>
+            <li><code>TWELVE_DATA_API_KEY</code> - for market data</li>
+            <li><code>FMP_API_KEY</code> - for financial data</li>
+        </ul>
+        <p>Get free API keys:</p>
+        <a href="https://twelvedata.com/pricing" target="_blank">📊 Twelve Data API →</a><br>
+        <a href="https://financialmodelingprep.com/developer/docs" target="_blank">💰 FMP API →</a>
+    </div>
+
     <h1>📈 Market Dashboard</h1>
     <p class="subtitle">Daily prices & trends for major indices and commodities</p>
     
@@ -623,11 +1145,56 @@
     
     <p class="last-updated" id="railroadLastUpdated"></p>
 
+    <!-- Relative Strength Section -->
+    <h2 class="section-title">💪 Relative Strength Scanner</h2>
+    <p class="section-subtitle">Stocks outperforming or underperforming Nifty 50 (shows RS vs benchmark index)</p>
+    
+    <div style="text-align: center;">
+        <button class="scan-btn" style="background: linear-gradient(90deg, #10b981, #059669);" onclick="loadRelativeStrength()">🔍 Scan Relative Strength</button>
+    </div>
+    
+    <div class="rs-container" id="rsContent"></div>
+    
+    <p class="last-updated" id="rsLastUpdated"></p>
+
+    <!-- Sector Analysis Section -->
+    <h2 class="section-title">📊 Sector Performance Analysis</h2>
+    <p class="section-subtitle">Top performing, bottomed out (showing reversal), and underperforming sectors with their top stocks</p>
+    
+    <div style="text-align: center;">
+        <button class="scan-btn" style="background: linear-gradient(90deg, #f59e0b, #d97706);" onclick="loadSectorAnalysis()">🔍 Analyze Sectors</button>
+    </div>
+    
+    <div class="sector-container" id="sectorContent"></div>
+    
+    <p class="last-updated" id="sectorLastUpdated"></p>
+
+    <!-- Rounding Bottom Section -->
+    <h2 class="section-title">🥣 Rounding Bottom Pattern Scanner</h2>
+    <p class="section-subtitle">Stocks forming a saucer/rounding bottom pattern - potential reversal candidates</p>
+    
+    <div style="text-align: center;">
+        <button class="scan-btn" style="background: linear-gradient(90deg, #a78bfa, #7c3aed);" onclick="loadRoundingBottom()">🔍 Scan Rounding Bottoms</button>
+    </div>
+    
+    <div class="rb-container" id="rbContent"></div>
+    
+    <p class="last-updated" id="rbLastUpdated"></p>
+
     <script>
         let charts = {};
         let fearGreedChartGlobal = null;
         let fearGreedChartIndia = null;
         let isDemo = false;
+
+        // API Keys Panel hover functions
+        function showApiKeysPanel() {
+            document.getElementById('apiKeysPanel').classList.add('visible');
+        }
+        
+        function hideApiKeysPanel() {
+            document.getElementById('apiKeysPanel').classList.remove('visible');
+        }
 
         // Load Global Fear & Greed Index
         async function loadFearGreedGlobal() {
@@ -750,16 +1317,30 @@
             container.innerHTML = '<div class="dashboard" id="dashboard"></div>';
             const dashboard = document.getElementById('dashboard');
             
-            // Show status banner
+            // Update data mode indicator (fixed position)
+            const modeIndicator = document.getElementById('dataModeIndicator');
+            const modeText = document.getElementById('dataModeText');
+            const pulseDot = modeIndicator.querySelector('.pulse-dot');
+            
+            if (data.data_source === 'simulated') {
+                modeIndicator.className = 'data-mode-indicator simulated';
+                pulseDot.className = 'pulse-dot simulated';
+                modeText.textContent = '✓ Simulated Data';
+            } else {
+                modeIndicator.className = 'data-mode-indicator live';
+                pulseDot.className = 'pulse-dot live';
+                modeText.textContent = '🔴 Real Data';
+            }
+            
+            // Show status banner (minimal - hover for details)
             const bannerEl = document.getElementById('statusBanner');
             if (data.data_source === 'simulated') {
                 bannerEl.innerHTML = `
                     <div class="demo-banner" style="background: linear-gradient(90deg, #3b82f6, #1d4ed8); color: #fff;">
-                        📊 Simulated Data Mode - Set API keys for live data 
-                        <a href="https://twelvedata.com" target="_blank" style="color: #fbbf24; margin-left: 10px;">Get Free API Key →</a>
+                        📊 Simulated Data Mode - Hover over indicator for API key info
                     </div>`;
             } else {
-                bannerEl.innerHTML = '<div class="demo-banner" style="background: linear-gradient(90deg, #10b981, #059669);">✅ Live Market Data</div>';
+                bannerEl.innerHTML = '<div class="demo-banner" style="background: linear-gradient(90deg, #10b981, #059669);">🔴 Live Market Data</div>';
             }
             
             // Destroy existing charts
@@ -1152,6 +1733,385 @@
             
             document.getElementById('railroadLastUpdated').textContent = 
                 `Analyzed ${data.total_scanned} stocks at ${new Date(data.fetched_at).toLocaleString()}`;
+        }
+
+        // Relative Strength Functions
+        async function loadRelativeStrength() {
+            const btn = document.querySelector('.rs-container').previousElementSibling.previousElementSibling.querySelector('.scan-btn');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = '⏳ Analyzing...';
+            }
+            
+            document.getElementById('rsContent').innerHTML = '<div class="loading">Calculating relative strength vs Nifty 50...</div>';
+            
+            try {
+                const response = await fetch('/api/relative-strength');
+                const data = await response.json();
+                renderRelativeStrength(data);
+            } catch (error) {
+                document.getElementById('rsContent').innerHTML = 
+                    `<div class="loading" style="color: #ef4444;">Error analyzing: ${error.message}</div>`;
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = '🔍 Scan Relative Strength';
+                }
+            }
+        }
+
+        function renderRelativeStrength(data) {
+            const container = document.getElementById('rsContent');
+            
+            const formatReturn = (val) => {
+                const isPos = val >= 0;
+                return `<span class="rs-return-chip ${isPos ? 'positive' : 'negative'}">${isPos ? '+' : ''}${val}%</span>`;
+            };
+            
+            const renderRSList = (items, emptyMsg, limit = 15) => {
+                if (items.length === 0) {
+                    return `<p class="empty-message">${emptyMsg}</p>`;
+                }
+                return items.slice(0, limit).map(item => `
+                    <div class="rs-item">
+                        <div class="rs-info">
+                            <div class="rs-name">${item.name}</div>
+                            <div class="rs-ticker">${item.symbol}</div>
+                            <div class="rs-returns">
+                                <span style="font-size: 0.6rem; color: #666;">Returns:</span>
+                                ${formatReturn(item.stock_returns['1w'])} 
+                                ${formatReturn(item.stock_returns['1m'])} 
+                                ${formatReturn(item.stock_returns['3m'])}
+                            </div>
+                            <div style="font-size: 0.6rem; color: #666; margin-top: 2px;">1W | 1M | 3M</div>
+                        </div>
+                        <div class="rs-metrics">
+                            <div class="rs-score ${item.rs_score >= 0 ? 'positive' : 'negative'}">
+                                ${item.rs_score >= 0 ? '+' : ''}${item.rs_score}
+                            </div>
+                            <div style="font-size: 0.65rem; color: #888;">RS Score</div>
+                            <span class="rs-momentum ${item.rs_momentum}">
+                                ${item.rs_momentum === 'rising' ? '📈' : '📉'} ${item.rs_momentum}
+                            </span>
+                        </div>
+                    </div>
+                `).join('') + (items.length > limit ? `<p class="empty-message">+${items.length - limit} more...</p>` : '');
+            };
+            
+            const benchmarkReturns = data.benchmark.returns;
+            
+            const html = `
+                <!-- Benchmark Info -->
+                <div class="rs-benchmark">
+                    <div class="rs-benchmark-title">📊 Benchmark: ${data.benchmark.name}</div>
+                    <div class="rs-benchmark-returns">
+                        <div class="rs-benchmark-item">
+                            <div class="rs-benchmark-label">1 Week</div>
+                            <div class="rs-benchmark-value" style="color: ${benchmarkReturns['1w'] >= 0 ? '#22c55e' : '#ef4444'}">
+                                ${benchmarkReturns['1w'] >= 0 ? '+' : ''}${benchmarkReturns['1w'].toFixed(2)}%
+                            </div>
+                        </div>
+                        <div class="rs-benchmark-item">
+                            <div class="rs-benchmark-label">1 Month</div>
+                            <div class="rs-benchmark-value" style="color: ${benchmarkReturns['1m'] >= 0 ? '#22c55e' : '#ef4444'}">
+                                ${benchmarkReturns['1m'] >= 0 ? '+' : ''}${benchmarkReturns['1m'].toFixed(2)}%
+                            </div>
+                        </div>
+                        <div class="rs-benchmark-item">
+                            <div class="rs-benchmark-label">3 Months</div>
+                            <div class="rs-benchmark-value" style="color: ${benchmarkReturns['3m'] >= 0 ? '#22c55e' : '#ef4444'}">
+                                ${benchmarkReturns['3m'] >= 0 ? '+' : ''}${benchmarkReturns['3m'].toFixed(2)}%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="rs-grid">
+                    <!-- Outperformers -->
+                    <div class="rs-panel outperform">
+                        <h3>
+                            🚀 Outperformers (Stronger than Nifty)
+                            <span class="count-badge">${data.outperformers.length}</span>
+                        </h3>
+                        <p style="font-size: 0.75rem; color: #888; margin-bottom: 12px;">
+                            Stocks with positive Relative Strength vs Nifty 50
+                        </p>
+                        <div class="cross-list">
+                            ${renderRSList(data.outperformers, 'No outperformers found')}
+                        </div>
+                    </div>
+                    
+                    <!-- Underperformers -->
+                    <div class="rs-panel underperform">
+                        <h3>
+                            🐢 Underperformers (Weaker than Nifty)
+                            <span class="count-badge">${data.underperformers.length}</span>
+                        </h3>
+                        <p style="font-size: 0.75rem; color: #888; margin-bottom: 12px;">
+                            Stocks with negative Relative Strength vs Nifty 50
+                        </p>
+                        <div class="cross-list">
+                            ${renderRSList(data.underperformers, 'No underperformers found')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+            
+            document.getElementById('rsLastUpdated').textContent = 
+                `Analyzed ${data.total_scanned} stocks at ${new Date(data.fetched_at).toLocaleString()}`;
+        }
+
+        // Sector Analysis Functions
+        async function loadSectorAnalysis() {
+            const btn = document.querySelector('.sector-container').previousElementSibling.previousElementSibling.querySelector('.scan-btn');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = '⏳ Analyzing...';
+            }
+            
+            document.getElementById('sectorContent').innerHTML = '<div class="loading">Analyzing sector performance...</div>';
+            
+            try {
+                const response = await fetch('/api/sector-analysis');
+                const data = await response.json();
+                renderSectorAnalysis(data);
+            } catch (error) {
+                document.getElementById('sectorContent').innerHTML = 
+                    `<div class="loading" style="color: #ef4444;">Error analyzing: ${error.message}</div>`;
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = '🔍 Analyze Sectors';
+                }
+            }
+        }
+
+        function renderSectorAnalysis(data) {
+            const container = document.getElementById('sectorContent');
+            
+            const formatReturn = (val) => {
+                const isPos = val >= 0;
+                const color = isPos ? '#22c55e' : '#ef4444';
+                return `<span style="color: ${color}">${isPos ? '+' : ''}${val}%</span>`;
+            };
+            
+            const renderSectorCards = (sectors, emptyMsg) => {
+                if (!sectors || sectors.length === 0) {
+                    return `<p class="empty-message">${emptyMsg}</p>`;
+                }
+                return sectors.map(sector => `
+                    <div class="sector-card" style="border-color: ${sector.color}">
+                        <div class="sector-header">
+                            <span class="sector-name" style="color: ${sector.color}">${sector.sector}</span>
+                            <span class="sector-score" style="color: ${sector.sector_score >= 0 ? '#22c55e' : '#ef4444'}">
+                                ${sector.sector_score >= 0 ? '+' : ''}${sector.sector_score}
+                            </span>
+                        </div>
+                        <div class="sector-returns">
+                            <div class="sector-return-item">
+                                <span class="sector-return-label">1W</span>
+                                <span class="sector-return-value">${formatReturn(sector.avg_returns['1w'])}</span>
+                            </div>
+                            <div class="sector-return-item">
+                                <span class="sector-return-label">1M</span>
+                                <span class="sector-return-value">${formatReturn(sector.avg_returns['1m'])}</span>
+                            </div>
+                            <div class="sector-return-item">
+                                <span class="sector-return-label">3M</span>
+                                <span class="sector-return-value">${formatReturn(sector.avg_returns['3m'])}</span>
+                            </div>
+                            ${sector.is_bottomed ? '<span class="sector-badge" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b;">📈 Reversal</span>' : ''}
+                        </div>
+                        <div class="sector-stocks">
+                            <div class="sector-stocks-title">Top stocks in sector:</div>
+                            ${sector.stocks.slice(0, 2).map(stock => `
+                                <div class="top-stock-item">
+                                    <span class="top-stock-name">${stock.name}</span>
+                                    <span class="top-stock-return" style="color: ${stock.returns_1m >= 0 ? '#22c55e' : '#ef4444'}">
+                                        ${stock.returns_1m >= 0 ? '+' : ''}${stock.returns_1m}%
+                                    </span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('');
+            };
+            
+            const renderFeaturedStocks = (stocks, title, metric, metricLabel) => {
+                if (!stocks || stocks.length === 0) return '';
+                return `
+                    <div class="featured-stocks">
+                        <h4>⭐ ${title}</h4>
+                        ${stocks.map(stock => `
+                            <div class="featured-stock-card">
+                                <div class="featured-stock-info">
+                                    <span class="featured-stock-name">${stock.name}</span>
+                                    <span class="featured-stock-sector" style="background: ${stock.sector_color}20; color: ${stock.sector_color}">${stock.sector}</span>
+                                </div>
+                                <div class="featured-stock-metrics">
+                                    <div class="featured-stock-price">₹${stock.price.toLocaleString()}</div>
+                                    <div class="featured-stock-change" style="color: ${stock[metric] >= 0 ? '#22c55e' : '#ef4444'}">
+                                        ${metricLabel}: ${stock[metric] >= 0 ? '+' : ''}${stock[metric]}%
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            };
+            
+            const html = `
+                <div class="sector-grid">
+                    <!-- Top Performing Sectors -->
+                    <div class="sector-panel top-perform">
+                        <h3>
+                            🚀 Top Performing Sectors
+                            <span class="count-badge">${data.top_performing.sectors.length}</span>
+                        </h3>
+                        <p style="font-size: 0.75rem; color: #888; margin-bottom: 12px;">
+                            Sectors with positive momentum and strong returns
+                        </p>
+                        <div class="cross-list">
+                            ${renderSectorCards(data.top_performing.sectors, 'No top performing sectors found')}
+                        </div>
+                        ${renderFeaturedStocks(data.top_performing.top_stocks, 'Top 2 Stocks', 'returns_1m', '1M Return')}
+                    </div>
+                    
+                    <!-- Bottomed Out Sectors -->
+                    <div class="sector-panel bottomed">
+                        <h3>
+                            🔄 Bottomed Out Sectors (Reversal)
+                            <span class="count-badge">${data.bottomed_out.sectors.length}</span>
+                        </h3>
+                        <p style="font-size: 0.75rem; color: #888; margin-bottom: 12px;">
+                            Sectors showing signs of reversal after a decline
+                        </p>
+                        <div class="cross-list">
+                            ${renderSectorCards(data.bottomed_out.sectors, 'No sectors showing reversal signs')}
+                        </div>
+                        ${renderFeaturedStocks(data.bottomed_out.top_stocks, 'Top 2 Reversal Stocks', 'bounce_from_low', 'Bounce')}
+                    </div>
+                    
+                    <!-- Underperforming Sectors -->
+                    <div class="sector-panel underperform">
+                        <h3>
+                            📉 Underperforming Sectors
+                            <span class="count-badge">${data.underperforming.sectors.length}</span>
+                        </h3>
+                        <p style="font-size: 0.75rem; color: #888; margin-bottom: 12px;">
+                            Sectors with negative momentum - avoid or wait for reversal
+                        </p>
+                        <div class="cross-list">
+                            ${renderSectorCards(data.underperforming.sectors, 'No underperforming sectors found')}
+                        </div>
+                        ${renderFeaturedStocks(data.underperforming.top_stocks, 'Weakest 2 Stocks', 'returns_1m', '1M Return')}
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+            
+            document.getElementById('sectorLastUpdated').textContent = 
+                `Analyzed ${data.total_sectors} sectors at ${new Date(data.fetched_at).toLocaleString()}`;
+        }
+
+        // Rounding Bottom Functions
+        async function loadRoundingBottom() {
+            const btn = document.querySelector('.rb-container').previousElementSibling.previousElementSibling.querySelector('.scan-btn');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = '⏳ Scanning...';
+            }
+            
+            document.getElementById('rbContent').innerHTML = '<div class="loading">Scanning for rounding bottom patterns...</div>';
+            
+            try {
+                const response = await fetch('/api/rounding-bottom');
+                const data = await response.json();
+                renderRoundingBottom(data);
+            } catch (error) {
+                document.getElementById('rbContent').innerHTML = 
+                    `<div class="loading" style="color: #ef4444;">Error scanning: ${error.message}</div>`;
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = '🔍 Scan Rounding Bottoms';
+                }
+            }
+        }
+
+        function renderRoundingBottom(data) {
+            const container = document.getElementById('rbContent');
+            
+            if (data.stocks.length === 0) {
+                container.innerHTML = `
+                    <div class="rb-panel">
+                        <h3>🥣 Rounding Bottom Patterns</h3>
+                        <p class="empty-message">No stocks currently showing rounding bottom patterns</p>
+                    </div>
+                `;
+                document.getElementById('rbLastUpdated').textContent = 
+                    `Scanned ${data.total_scanned} stocks at ${new Date(data.fetched_at).toLocaleString()}`;
+                return;
+            }
+            
+            const getStageClass = (stage) => {
+                if (stage.includes('Early')) return 'early';
+                if (stage.includes('Mid')) return 'mid';
+                return 'late';
+            };
+            
+            const html = `
+                <div class="rb-panel">
+                    <h3>
+                        🥣 Rounding Bottom Patterns Found
+                        <span class="count-badge">${data.stocks.length}</span>
+                    </h3>
+                    <p style="font-size: 0.75rem; color: #888; margin-bottom: 15px;">
+                        Stocks forming a saucer pattern - price declined, stabilized at base, now recovering
+                    </p>
+                    <div class="rb-grid">
+                        ${data.stocks.map(stock => `
+                            <div class="rb-card">
+                                <div class="rb-header">
+                                    <div>
+                                        <div class="rb-name">${stock.name}</div>
+                                        <div class="rb-symbol">${stock.symbol}</div>
+                                    </div>
+                                    <div class="rb-score">${stock.pattern_score}</div>
+                                </div>
+                                <div class="rb-metrics">
+                                    <div class="rb-metric">
+                                        <span class="rb-metric-label">Current Price</span>
+                                        <span class="rb-metric-value">₹${stock.price.toLocaleString()}</span>
+                                    </div>
+                                    <div class="rb-metric">
+                                        <span class="rb-metric-label">Bottom Price</span>
+                                        <span class="rb-metric-value">₹${stock.min_price.toLocaleString()}</span>
+                                    </div>
+                                    <div class="rb-metric">
+                                        <span class="rb-metric-label">Bounce</span>
+                                        <span class="rb-metric-value" style="color: #22c55e;">+${stock.bounce_pct}%</span>
+                                    </div>
+                                    <div class="rb-metric">
+                                        <span class="rb-metric-label">Days Since Bottom</span>
+                                        <span class="rb-metric-value">${stock.days_since_bottom}</span>
+                                    </div>
+                                </div>
+                                <div class="rb-pattern-visual"></div>
+                                <span class="rb-stage ${getStageClass(stock.stage)}">${stock.stage}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+            
+            document.getElementById('rbLastUpdated').textContent = 
+                `Found ${data.total_found} patterns in ${data.total_scanned} stocks at ${new Date(data.fetched_at).toLocaleString()}`;
         }
     </script>
 </body>
